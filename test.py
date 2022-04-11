@@ -13,7 +13,7 @@ client.enableApiControl(True)
 print("API Control enabled: %s" % client.isApiControlEnabled())
 car_controls = airsim.CarControls()
 
-tmp_dir = os.path.join(tempfile.gettempdir(), "airsim_car")
+tmp_dir = "./car_pics"
 print ("Saving images to %s" % tmp_dir)
 try:
     os.makedirs(tmp_dir)
@@ -31,13 +31,6 @@ for idx in range(3):
     car_controls.steering = 0
     client.setCarControls(car_controls)
     print("Go Forward")
-    time.sleep(3)   # let car drive a bit
-
-    # Go forward + steer right
-    car_controls.throttle = 0.5
-    car_controls.steering = 1
-    client.setCarControls(car_controls)
-    print("Go Forward, steer right")
     time.sleep(3)   # let car drive a bit
 
     # go reverse
