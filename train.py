@@ -2,8 +2,9 @@ import tensorflow as tf
 import gym
 import numpy as np
 from matplotlib import pyplot as plt
+from Duel_DDQN import Exp, duel_DDQN_agent, Plot
 
-def run_episodes(env, agent, max_episodes):
+def run_episodes(env, agent, max_episodes, plot):
     r_per_episode = np.array([0])
     cum_R = np.array([0])
     cum_loss = np.array([0])
@@ -28,10 +29,10 @@ def run_episodes(env, agent, max_episodes):
 
             R += r 
 
-        (r_per_episode, cum_R_episodes, cum_R, cum_loss_episodes, cum_loss) = stats(r_per_episode, R, cum_R, cum_R_episodes, 
+        (r_per_episode, cum_R_episodes, cum_R, cum_loss_episodes, cum_loss) = plot.stats(r_per_episode, R, cum_R, cum_R_episodes, 
                                                                                 agent.cum_loss_per_episode, cum_loss, cum_loss_episodes)
           
-    display(r_per_episode, cum_R, cum_loss)
+    plot.display(r_per_episode, cum_R, cum_loss)
 
     env.close()
 
@@ -62,8 +63,9 @@ def main():
                         epsilon, gamma, learning_rate, 
                         replace, polyak, tau_step,
                         mem_size, minibatch_size)
+    plot = Plot()
 
-    run_episodes(env, agent, max_episodes)
+    run_episodes(env, agent, max_episodes, plot)
 
 if __name__=="__main__":
     main()
