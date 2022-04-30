@@ -12,12 +12,12 @@ class duel_DDQN_agent():
         - num_actions: number of actions possible
         - obs_size: size of the state/observation. size of image
         - nhidden: hidden nodes for network
-        - epoch: TODO: potentially variable that helps know when to do experience replay and training
+        - epoch: variable that helps know when to do experience replay and training (through modulo)
         - epsilon: epsilon decay, exploration vs exploitation
-        - gamma: TODO: var used in in dueling? used as discount factor
+        - gamma: TODO: var used in dueling? used as discount factor
         - learning_rate: for gradient descent network training
-        - replace: can be 'soft' or 'hard'. different types of replacement. TODO: understand how they're different
-        - polyak: var used in soft replacement formula
+        - replace: can be 'soft' or 'hard'. different types of replacement. 
+        - polyak: var used in soft replacement formula. how much to update in soft replacement
         - tau_step: hard replacement var. Used to know when to do replacement
         - mem_size: max memory used for exp replay buffer
         - minibatch_size: minibatch for training size
@@ -72,11 +72,13 @@ class duel_DDQN_agent():
     # TODO: stopped here
     # epsilon-greedy behaviour policy for action selection   
     def act(self, s):
+        # Get action either randomly or from network
         if np.random.random() < self.epsilon:
             i = np.random.randint(0,len(self.actions))
         else: 
             # get Q(s,a) from model network
-            Q_val = self.sess.run(self.model_Q_val, feed_dict={self.s: np.reshape(s, (1,s.shape[0]))})
+            # TODO: change self.sess
+            Q_val = self.sess.run(self.model_Q_val, feed_dict={self.s: np.reshape(s, (1, s.shape[0]))})
             # get index of largest Q(s,a)
             i = np.argmax(Q_val)
             
@@ -89,12 +91,14 @@ class duel_DDQN_agent():
     
     def learn(self, s, a, r, done):
         # stores observation in memory as experience at each time step 
+        # self.mem is class object from experience_replay
         self.mem.store(s, a, r, done)
         # starts training a minibatch from experience after 1st epoch
         if self.step > self.epoch:
             self.replay() # start training with experience replay
 
     def td_target(self, s_next, r, done, model_s_next_Q_val, target_Q_val):  
+        # This function does Bellman update and is used to calculate loss of network
         # select action with largest Q value from model network
         model_max_a = tf.argmax(model_s_next_Q_val, axis=1, output_type=tf.dtypes.int32)
         
@@ -104,6 +108,7 @@ class duel_DDQN_agent():
         max_target_Q_val = tf.reshape(max_target_Q_val, (self.minibatch_size,1))
         
         # if state = done, td_target = r
+        # Bellman update
         td_target = (1.0 - tf.cast(done, tf.float32)) * tf.math.multiply(self.gamma, max_target_Q_val) + r
         # exclude td_target in gradient computation
         td_target = tf.stop_gradient(td_target)
@@ -125,7 +130,8 @@ class duel_DDQN_agent():
         return Q_val
 
     # contruct neural network
-    def built_net(self, var_scope, w_init, b_init, features, num_hidden, num_output):              
+    def built_net(self, var_scope, w_init, b_init, features, num_hidden, num_output):       
+        # TODO: change contrib to tf2 fns       
         with tf.variable_scope(var_scope):          
           feature_layer = tf.contrib.layers.fully_connected(features, num_hidden, 
                                                             activation_fn = tf.nn.relu,
@@ -146,7 +152,9 @@ class duel_DDQN_agent():
     def built_graph(self):              
         tf.reset_default_graph()
         
-        self.s = tf.placeholder(tf.float32, [None,self.obs_size], name='s')
+
+        # Initialize all variables
+        self.s = tf.placeholder(tf.float32, [None, self.obs_size], name='s')
         self.a = tf.placeholder(tf.int32, [None,], name='a')
         self.r = tf.placeholder(tf.float32, [None,1], name='r')
         self.s_next = tf.placeholder(tf.float32, [None,self.obs_size], name='s_next')
@@ -160,6 +168,7 @@ class duel_DDQN_agent():
         self.model_Q_val = self.built_net('model_net', w_init, b_init, self.s, self.nhidden, self.num_actions)
         self.target_Q_val = self.built_net('target_net', w_init, b_init, self.s_next, self.nhidden, self.num_actions)         
           
+        # TODO: change variable_scope to tf2 fns
         with tf.variable_scope('td_target'):
           td_target = self.td_target(self.s_next, self.r, self.done, self.model_s_next_Q_val, self.target_Q_val)
         with tf.variable_scope('predicted_Q_val'):
@@ -183,9 +192,11 @@ class duel_DDQN_agent():
     # decide soft or hard params replacement        
     def replace_params(self):
         if self.replace == 'soft':
+            # Move weights partially: 0.9 target + 0.1 model
             # soft params replacement 
             self.sess.run(self.target_replace_soft)  
         else:
+            # copy weight from trained to target every tau steps
             # hard params replacement
             if self.learn_step % self.tau_step == 0:
                 self.sess.run(self.target_replace_hard)  
