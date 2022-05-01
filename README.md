@@ -18,6 +18,7 @@ pip install pygame
 The Duel_DDQN folder is a package for training with Dueling Double DQN using a gym environment. I have modified the code from [here](https://github.com/ChuaCheowHuan/reinforcement_learning/blob/master/DQN_variants/duel_DDQN/duelling_DDQN_cartpole.ipynb) to make it into an easy to use package. You can train with Dueling Double DQN following the setup template in train.py
 
 ## To-Do:
-- Create a Conv2D model to preprocess input images
+- Add Conv2D layers to preprocess input images
+- Modify environment actions to get 2-4 consecutive frames
 - Set up custom gym environment for the car in AirSim 
 - Design reward function for the car agent that uses the simulation env to determine if the car is in the lane
