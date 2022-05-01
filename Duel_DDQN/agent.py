@@ -1,7 +1,5 @@
 import tensorflow as tf
-import gym
 import numpy as np
-from matplotlib import pyplot as plt
 from Duel_DDQN import Exp
 
 
@@ -132,20 +130,29 @@ class duel_DDQN_agent():
 
     # contruct neural network
     def built_net(self, var_scope, w_init, b_init, features, num_hidden, num_output):       
-        # TODO: change contrib to tf2 fns       
-        with tf.variable_scope(var_scope):          
-          feature_layer = tf.contrib.layers.fully_connected(features, num_hidden, 
-                                                            activation_fn = tf.nn.relu,
-                                                            weights_initializer = w_init,
-                                                            biases_initializer = b_init)
-          V = tf.contrib.layers.fully_connected(feature_layer, 1, 
-                                                activation_fn = None,
-                                                weights_initializer = w_init,
-                                                biases_initializer = b_init) 
-          A = tf.contrib.layers.fully_connected(feature_layer, num_output, 
-                                                activation_fn = None,
-                                                weights_initializer = w_init,
-                                                biases_initializer = b_init)   
+        # TODO: change contrib to tf2 fns     
+        model = tf.keras.Sequential()  
+        input_layer = tf.keras.Input(shape=(self.obs_size,))
+        feature_layer = tf.keras.layers.Dense(num_hidden, activation = 'relu' )
+        V = tf.keras.layers.Dense(1)
+        A = tf.keras.layers.Dense(num_output)
+        # with tf.variable_scope(var_scope):       
+        #     feature_layer = tf.keras.layers.Dense(features, num_hidden, 
+        #                                           activation = 'relu',
+        #                                           weights_initializer = w_init,
+        #                                           biases_initializer = b_init)   
+        #   feature_layer = tf.contrib.layers.fully_connected(features, num_hidden, 
+        #                                                     activation_fn = tf.nn.relu,
+        #                                                     weights_initializer = w_init,
+        #                                                     biases_initializer = b_init)
+        #   V = tf.contrib.layers.fully_connected(feature_layer, 1, 
+        #                                         activation_fn = None,
+        #                                         weights_initializer = w_init,
+        #                                         biases_initializer = b_init) 
+        #   A = tf.contrib.layers.fully_connected(feature_layer, num_output, 
+        #                                         activation_fn = None,
+        #                                         weights_initializer = w_init,
+        #                                         biases_initializer = b_init)   
           Q_val = V + (A - tf.reduce_mean(A, reduction_indices=1, keepdims=True)) # refer to eqn 9 from the original paper          
         return Q_val    
       

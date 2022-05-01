@@ -1,8 +1,4 @@
-import tensorflow as tf
-import gym
 import numpy as np
-from matplotlib import pyplot as plt
-
 
 # random sampling for learning from experience replay
 class Exp():
