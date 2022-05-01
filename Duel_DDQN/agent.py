@@ -1,7 +1,6 @@
 import tensorflow as tf
 import numpy as np
-from Duel_DDQN import Exp
-
+from .experience_replay import Exp
 
 
 # Evaluates behavior policy while improving target policy
@@ -54,7 +53,6 @@ class duel_DDQN_agent():
                 
         # for tensorflow ops
         self.built_graph() # call function that builds tf graph and sets up network        
-        # TODO: this is deprecated but there is tuto on how to migrate to tf 2
         self.sess = tf.Session() 
         self.sess.run(tf.global_variables_initializer())
         self.sess.run(self.target_replace_hard)
@@ -68,7 +66,6 @@ class duel_DDQN_agent():
             self.epsilon = max(.01, self.epsilon * .95)
             
     
-    # TODO: stopped here
     # epsilon-greedy behaviour policy for action selection   
     def act(self, s):
         # Get action either randomly or from network
@@ -76,7 +73,6 @@ class duel_DDQN_agent():
             i = np.random.randint(0,len(self.actions))
         else: 
             # get Q(s,a) from model network
-            # TODO: change self.sess
             Q_val = self.sess.run(self.model_Q_val, feed_dict={self.s: np.reshape(s, (1, s.shape[0]))})
             # get index of largest Q(s,a)
             i = np.argmax(Q_val)
@@ -130,30 +126,20 @@ class duel_DDQN_agent():
 
     # contruct neural network
     def built_net(self, var_scope, w_init, b_init, features, num_hidden, num_output):       
-        # TODO: change contrib to tf2 fns     
-        model = tf.keras.Sequential()  
-        input_layer = tf.keras.Input(shape=(self.obs_size,))
-        feature_layer = tf.keras.layers.Dense(num_hidden, activation = 'relu' )
-        V = tf.keras.layers.Dense(1)
-        A = tf.keras.layers.Dense(num_output)
-        # with tf.variable_scope(var_scope):       
-        #     feature_layer = tf.keras.layers.Dense(features, num_hidden, 
-        #                                           activation = 'relu',
-        #                                           weights_initializer = w_init,
-        #                                           biases_initializer = b_init)   
-        #   feature_layer = tf.contrib.layers.fully_connected(features, num_hidden, 
-        #                                                     activation_fn = tf.nn.relu,
-        #                                                     weights_initializer = w_init,
-        #                                                     biases_initializer = b_init)
-        #   V = tf.contrib.layers.fully_connected(feature_layer, 1, 
-        #                                         activation_fn = None,
-        #                                         weights_initializer = w_init,
-        #                                         biases_initializer = b_init) 
-        #   A = tf.contrib.layers.fully_connected(feature_layer, num_output, 
-        #                                         activation_fn = None,
-        #                                         weights_initializer = w_init,
-        #                                         biases_initializer = b_init)   
-          Q_val = V + (A - tf.reduce_mean(A, reduction_indices=1, keepdims=True)) # refer to eqn 9 from the original paper          
+        with tf.variable_scope(var_scope):       
+            feature_layer = tf.contrib.layers.fully_connected(features, num_hidden, 
+                                                            activation_fn = tf.nn.relu,
+                                                            weights_initializer = w_init,
+                                                            biases_initializer = b_init)
+            V = tf.contrib.layers.fully_connected(feature_layer, 1, 
+                                                activation_fn = None,
+                                                weights_initializer = w_init,
+                                                biases_initializer = b_init) 
+            A = tf.contrib.layers.fully_connected(feature_layer, num_output, 
+                                                activation_fn = None,
+                                                weights_initializer = w_init,
+                                                biases_initializer = b_init)   
+            Q_val = V + (A - tf.reduce_mean(A, reduction_indices=1, keepdims=True)) # refer to eqn 9 from the original paper          
         return Q_val    
       
     # contruct tensorflow graph
@@ -176,26 +162,25 @@ class duel_DDQN_agent():
         self.model_Q_val = self.built_net('model_net', w_init, b_init, self.s, self.nhidden, self.num_actions)
         self.target_Q_val = self.built_net('target_net', w_init, b_init, self.s_next, self.nhidden, self.num_actions)         
           
-        # TODO: change variable_scope to tf2 fns
         with tf.variable_scope('td_target'):
-          td_target = self.td_target(self.s_next, self.r, self.done, self.model_s_next_Q_val, self.target_Q_val)
+            td_target = self.td_target(self.s_next, self.r, self.done, self.model_s_next_Q_val, self.target_Q_val)
         with tf.variable_scope('predicted_Q_val'):
-          predicted_Q_val = self.predicted_Q_val(self.a, self.model_Q_val)
+            predicted_Q_val = self.predicted_Q_val(self.a, self.model_Q_val)
         with tf.variable_scope('loss'):
-          self.loss = tf.losses.huber_loss(td_target, predicted_Q_val)
+            self.loss = tf.losses.huber_loss(td_target, predicted_Q_val)
         with tf.variable_scope('optimizer'):
-          self.optimizer = tf.train.GradientDescentOptimizer(self.learning_rate).minimize(self.loss)
+            self.optimizer = tf.train.GradientDescentOptimizer(self.learning_rate).minimize(self.loss)
           
         # get network params  
         with tf.variable_scope('params'):
-          self.target_net_params = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope='target_net')
-          self.model_net_params = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope='model_net')  
+            self.target_net_params = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope='target_net')
+            self.model_net_params = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope='model_net')  
         
         # replace target net params with model net params
         with tf.variable_scope('hard_replace'):
-          self.target_replace_hard = [t.assign(m) for t, m in zip(self.target_net_params, self.model_net_params)]
+            self.target_replace_hard = [t.assign(m) for t, m in zip(self.target_net_params, self.model_net_params)]
         with tf.variable_scope('soft_replace'):            
-          self.target_replace_soft = [t.assign(self.polyak * m + (1 - self.polyak) * t) for t, m in zip(self.target_net_params, self.model_net_params)]                
+            self.target_replace_soft = [t.assign(self.polyak * m + (1 - self.polyak) * t) for t, m in zip(self.target_net_params, self.model_net_params)]                
               
     # decide soft or hard params replacement        
     def replace_params(self):

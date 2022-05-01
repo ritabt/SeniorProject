@@ -6,7 +6,7 @@ class Plot():
         return
 
   # compute stats
-    def stats(r_per_episode, R, cum_R, cum_R_episodes, 
+    def stats(self, r_per_episode, R, cum_R, cum_R_episodes, 
             cum_loss_per_episode, cum_loss, cum_loss_episodes):
         r_per_episode = np.append(r_per_episode, R) # store reward per episode
         cum_R_episodes += R
@@ -18,21 +18,20 @@ class Plot():
         return (r_per_episode, cum_R_episodes, cum_R, cum_loss_episodes, cum_loss)
 
     # plot performance
-    def plot_charts(values, y_label):
+    def plot_charts(self, values, y_label):
         fig = plt.figure(figsize=(10,5))
         plt.title("DQN performance")
         plt.xlabel("Episode")
         plt.ylabel(y_label)
         plt.plot(values)
-        plt.show(fig)
-        out_file = y_label + "_plot.png"
+        out_file = "plots/" + y_label + "_plot.png"
         plt.savefig(out_file) 
         plt.close()
 
-    def display(r_per_episode, cum_R, cum_loss):
-        plot_charts(r_per_episode, "Reward")
-        plot_charts(cum_R, "cumulative_reward")
-        plot_charts(cum_loss, "cumulative_loss")
+    def display(self, r_per_episode, cum_R, cum_loss, max_episodes):
+        self.plot_charts(r_per_episode, "Reward")
+        self.plot_charts(cum_R, "cumulative_reward")
+        self.plot_charts(cum_loss, "cumulative_loss")
 
         avg_r = np.sum(r_per_episode) / max_episodes
         print("avg_r", avg_r)  
