@@ -3,6 +3,7 @@ import tensorflow as tf
 from tensorflow.keras.optimizers import Adam
 import numpy as np
 from Duel_Double_DQN import DuelingDeepQNetwork, ExperienceReplay
+import pdb
 
 
 class Agent():
@@ -26,11 +27,10 @@ class Agent():
         self.q_next = DuelingDeepQNetwork(n_actions, fc1_dims, fc2_dims)
         self.q_next.trainable=True
 
-        self.q_eval.compile(optimizer=Adam(learning_rate=lr),
-                            loss='mean_squared_error')
+        self.q_eval.compile(optimizer=Adam(learning_rate=lr), loss='mean_squared_error')
                             
-        self.q_next.compile(optimizer=Adam(learning_rate=lr),
-                            loss='mean_squared_error')
+        self.q_next.compile(optimizer=Adam(learning_rate=lr), loss='mean_squared_error')
+        self.cum_loss_per_episode = 0 # incremented loss for charting display
 
     def store_transition(self, state, action, reward, new_state, done):
         self.memory.store_transition(state, action, reward, new_state, done)
@@ -82,7 +82,10 @@ class Agent():
         #     q_target[idx, actions[idx]] = rewards[idx] + self.gamma*q_next[idx, max_actions[idx]]*(1-int(dones[idx]))
 
         #########################################
-        self.q_eval.train_on_batch(states, q_target)
+        # loss = self.q_eval.train_on_batch(states, q_target)
+        loss = self.q_eval.fit(x=states, y=q_target, verbose=0, batch_size=self.batch_size, epochs=1)
+        # pdb.set_trace()
+        self.cum_loss_per_episode += loss.history['loss'][0]
 
         self.update_epsilon()
 
