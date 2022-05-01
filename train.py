@@ -31,8 +31,9 @@ def run_episodes(env, agent, max_episodes, plot):
 
         (r_per_episode, cum_R_episodes, cum_R, cum_loss_episodes, cum_loss) = plot.stats(r_per_episode, R, cum_R, cum_R_episodes, 
                                                                                 agent.cum_loss_per_episode, cum_loss, cum_loss_episodes)
+        print('episode: ', episode_number, ' epsilon: %.3f'%agent.epsilon, ' reward: %.2f'%R)
           
-    plot.display(r_per_episode, cum_R, cum_loss)
+    plot.display(r_per_episode, cum_R, cum_loss, max_episodes)
 
     env.close()
 
@@ -40,8 +41,8 @@ def run_episodes(env, agent, max_episodes, plot):
 def main():
     env = gym.make('CartPole-v0') # openai gym environment
 
-    max_episodes = 500
-    epoch = 100
+    max_episodes = 1000
+    epoch = 200
 
     num_actions = env.action_space.n # number of possible actions
     obs_size = env.observation_space.shape[0] # dimension of state space
