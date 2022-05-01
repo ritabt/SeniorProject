@@ -3,6 +3,8 @@ import gym
 import numpy as np
 from matplotlib import pyplot as plt
 from Duel_DDQN import Exp, duel_DDQN_agent, Plot
+from time import sleep
+import pdb
 
 def run_episodes(env, agent, max_episodes, plot):
     r_per_episode = np.array([0])
@@ -16,13 +18,25 @@ def run_episodes(env, agent, max_episodes, plot):
         s = env.reset() # reset new episode
         done = False 
         R = 0 
-            
+        # env.render(mode="rgb_array")
+        # env.render()
+        # sleep(0.03)
         # repeat each step
         while not done:
+
             # select action using behaviour policy(epsilon-greedy) from model network
             a = agent.act(s)
             # take action in environment
             next_s, r, done, _ = env.step(a)
+            # env.render()
+            # sleep(0.03)
+            img = env.render(mode="rgb_array")
+            plt.imshow(img)
+            plt.show()
+            img_crop = img[125:310, 200:400]
+            plt.imshow(img_crop)
+            plt.show()
+            pdb.set_trace()
             # agent learns
             agent.learn(s, a, r, done)
             s = next_s
@@ -41,8 +55,8 @@ def run_episodes(env, agent, max_episodes, plot):
 def main():
     env = gym.make('CartPole-v0') # openai gym environment
 
-    max_episodes = 1000
-    epoch = 200
+    max_episodes = 500
+    epoch = 100
 
     num_actions = env.action_space.n # number of possible actions
     obs_size = env.observation_space.shape[0] # dimension of state space
