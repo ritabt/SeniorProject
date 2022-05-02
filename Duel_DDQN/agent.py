@@ -1,6 +1,7 @@
 import tensorflow as tf
 import numpy as np
 from .experience_replay import Exp
+import tensorflow.compat.v2 as tf2
 
 
 # Evaluates behavior policy while improving target policy
@@ -22,7 +23,7 @@ class duel_DDQN_agent():
     '''
     def __init__(self, num_actions, obs_size, nhidden, epoch, 
                  epsilon, gamma, learning_rate, replace, polyak, 
-                 tau_step, mem_size, minibatch_size):
+                 tau_step, mem_size, minibatch_size, is_conv=False, img_size=None):
 
         super(duel_DDQN_agent, self).__init__()
         
@@ -30,6 +31,8 @@ class duel_DDQN_agent():
         self.num_actions = num_actions
         self.obs_size = obs_size # number of features
         self.nhidden = nhidden # hidden nodes
+        self.image_size = img_size # (185, 200, 3)
+        self.is_conv = is_conv
         
         # for epsilon decay & to decide when to start training
         # used in epsilon decay function for modulo to know when to decay
@@ -126,7 +129,7 @@ class duel_DDQN_agent():
 
     # contruct neural network
     def built_net(self, var_scope, w_init, b_init, features, num_hidden, num_output):       
-        with tf.variable_scope(var_scope):       
+        with tf.variable_scope(var_scope): 
             feature_layer = tf.contrib.layers.fully_connected(features, num_hidden, 
                                                             activation_fn = tf.nn.relu,
                                                             weights_initializer = w_init,
@@ -141,6 +144,21 @@ class duel_DDQN_agent():
                                                 biases_initializer = b_init)   
             Q_val = V + (A - tf.reduce_mean(A, reduction_indices=1, keepdims=True)) # refer to eqn 9 from the original paper          
         return Q_val    
+
+    # contruct CNN
+    def preprocess_image_model(self):
+        ## InceptionV3 pretrained on ImageNet:
+        # pretrained_model = tf2.keras.applications.InceptionV3(input_shape=self.image_size,
+        #                                            include_top=False,
+        #                                            pooling='avg',
+        #                                            weights='imagenet')
+        ## ResNet50 pretrained on ImageNet:
+        pretrained_model = tf2.keras.applications.ResNet50(input_shape=self.image_size,
+                                                   include_top=False,
+                                                   pooling='avg',
+                                                   weights='imagenet')
+        pretrained_model.trainable=False
+        return pretrained_model
       
     # contruct tensorflow graph
     def built_graph(self):              

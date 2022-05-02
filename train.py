@@ -6,19 +6,37 @@ from Duel_DDQN import Exp, duel_DDQN_agent, Plot
 from time import sleep
 import pdb
 
+def get_img(env):
+    img = env.render(mode="rgb_array")    
+    img_crop = img[125:310, 200:400]
+    return np.array([img_crop]).astype(np.float32)
+
+# TODO: move this to Agent class
+def get_image_state(model, env):
+    img = get_img(env)
+    s = model.predict(img)
+    s = np.reshape(s, (s.shape[1],))
+    # pdb.set_trace()
+    # s = s.eval(session=tf.compat.v1.Session())
+    return s
+
 def run_episodes(env, agent, max_episodes, plot):
     r_per_episode = np.array([0])
     cum_R = np.array([0])
     cum_loss = np.array([0])
     cum_R_episodes = 0
     cum_loss_episodes = 0
+    pretrained_model = agent.preprocess_image_model()
 
     # repeat each episode
     for episode_number in range(max_episodes):
         s = env.reset() # reset new episode
         done = False 
         R = 0 
-        # env.render(mode="rgb_array")
+        # pdb.set_trace()
+        if agent.is_conv:
+            s = get_image_state(pretrained_model, env)
+        # pdb.set_trace()
         # env.render()
         # sleep(0.03)
         # repeat each step
@@ -28,15 +46,9 @@ def run_episodes(env, agent, max_episodes, plot):
             a = agent.act(s)
             # take action in environment
             next_s, r, done, _ = env.step(a)
-            # env.render()
-            # sleep(0.03)
-            img = env.render(mode="rgb_array")
-            plt.imshow(img)
-            plt.show()
-            img_crop = img[125:310, 200:400]
-            plt.imshow(img_crop)
-            plt.show()
-            pdb.set_trace()
+            if agent.is_conv:
+                next_s = get_image_state(pretrained_model, env)
+            
             # agent learns
             agent.learn(s, a, r, done)
             s = next_s
@@ -55,11 +67,13 @@ def run_episodes(env, agent, max_episodes, plot):
 def main():
     env = gym.make('CartPole-v0') # openai gym environment
 
-    max_episodes = 500
-    epoch = 100
+    max_episodes = 2000
+    epoch = 1000
 
     num_actions = env.action_space.n # number of possible actions
     obs_size = env.observation_space.shape[0] # dimension of state space
+    # pdb.set_trace()
+    # obs_size = (185, 200) # img size
     nhidden = 128 # number of hidden nodes
 
     epsilon = .9
@@ -72,12 +86,16 @@ def main():
 
     mem_size = 30000
     minibatch_size = 64
+    is_conv = True
+    img_size = (185, 200, 3)
+    if is_conv:
+        obs_size = 2048 # size of pretrained model output
 
     agent = duel_DDQN_agent(num_actions, obs_size, nhidden,
                         epoch, 
                         epsilon, gamma, learning_rate, 
                         replace, polyak, tau_step,
-                        mem_size, minibatch_size)
+                        mem_size, minibatch_size, is_conv=is_conv, img_size=img_size)
     plot = Plot()
 
     run_episodes(env, agent, max_episodes, plot)
