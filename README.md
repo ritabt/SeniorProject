@@ -12,6 +12,7 @@ pip install tensorflow==1.15.2
 pip install matplotlib
 pip install gym
 pip install pygame
+pip install h5py==2.10.0 --force-reinstall
 ```
 
 ## This Repo:
