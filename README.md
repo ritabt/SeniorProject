@@ -9,6 +9,7 @@ Conda environment with python 3.7. Run the following commands to create a workin
 conda create -n tf python=3.7
 conda activate tf
 pip install tensorflow==1.15.2
+pip install tensorflow-gpu==1.15.2
 pip install matplotlib
 pip install gym
 pip install pygame
