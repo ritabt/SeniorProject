@@ -128,7 +128,8 @@ class duel_DDQN_agent():
         return Q_val
 
     # contruct neural network
-    def built_net(self, var_scope, w_init, b_init, features, num_hidden, num_output):       
+    # For non image state representation
+    def built_net_features(self, var_scope, w_init, b_init, features, num_hidden, num_output):       
         with tf.variable_scope(var_scope): 
             feature_layer = tf.contrib.layers.fully_connected(features, num_hidden, 
                                                             activation_fn = tf.nn.relu,
@@ -139,6 +140,52 @@ class duel_DDQN_agent():
                                                 weights_initializer = w_init,
                                                 biases_initializer = b_init) 
             A = tf.contrib.layers.fully_connected(feature_layer, num_output, 
+                                                activation_fn = None,
+                                                weights_initializer = w_init,
+                                                biases_initializer = b_init)   
+            Q_val = V + (A - tf.reduce_mean(A, reduction_indices=1, keepdims=True)) # refer to eqn 9 from the original paper          
+        return Q_val  
+
+    # Neural net with no feature layer 
+    # This is for using with Resnet/Inception
+    def built_net(self, var_scope, w_init, b_init, features, num_hidden, num_output):       
+        with tf.variable_scope(var_scope): 
+            V = tf.contrib.layers.fully_connected(features, 1, 
+                                                activation_fn = None,
+                                                weights_initializer = w_init,
+                                                biases_initializer = b_init) 
+            A = tf.contrib.layers.fully_connected(features, num_output, 
+                                                activation_fn = None,
+                                                weights_initializer = w_init,
+                                                biases_initializer = b_init)   
+            Q_val = V + (A - tf.reduce_mean(A, reduction_indices=1, keepdims=True)) # refer to eqn 9 from the original paper          
+        return Q_val    
+
+    # Neural Net with 2 conv layer on top
+    def built_conv_net(self, var_scope, w_init, b_init, features, num_hidden, num_output):       
+        with tf.variable_scope(var_scope): 
+            conv1 = tf.contrib.layers.conv2d(features, 64, 
+                                             (5,5), padding="same",
+                                             strides=2)
+            bn1 = tf.contrib.layers.batch_norm(conv1, activation=tf.nn.relu)
+            conv2 = tf.contrib.layers.conv2d(bn1, 64, 
+                                             (5,5), padding="same", 
+                                             strides=2)
+            bn2 = tf.contrib.layers.batch_norm(conv2, activation=tf.nn.relu)
+            conv3 = tf.contrib.layers.conv2d(bn2, 32, 
+                                             (5,5), padding="same", 
+                                             strides=2)
+            bn3 = tf.contrib.layers.batch_norm(conv3, activation=tf.nn.relu)
+            flatten = tf.contrib.layers.flatten(bn3)
+            feature_layer = tf.contrib.layers.fully_connected(flatten, num_hidden, 
+                                                            activation_fn = tf.nn.relu,
+                                                            weights_initializer = w_init,
+                                                            biases_initializer = b_init)
+            V = tf.contrib.layers.fully_connected(features, 1, 
+                                                activation_fn = None,
+                                                weights_initializer = w_init,
+                                                biases_initializer = b_init) 
+            A = tf.contrib.layers.fully_connected(features, num_output, 
                                                 activation_fn = None,
                                                 weights_initializer = w_init,
                                                 biases_initializer = b_init)   
