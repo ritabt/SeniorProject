@@ -18,18 +18,24 @@ class Plot():
         return (r_per_episode, cum_R_episodes, cum_R, cum_loss_episodes, cum_loss)
 
     # plot performance
-    def plot_charts(self, values, y_label):
+    def plot_charts(self, values, y_label, epsilon=None):
         fig = plt.figure(figsize=(10,5))
         plt.title("DQN performance")
         plt.xlabel("Episode")
         plt.ylabel(y_label)
-        plt.plot(values)
+        if epsilon is not None:
+            epsilon = epsilon*100
+            plt.plot(epsilon, 'g', label="epsilon percentage")
+            plt.plot(values, 'b', label="reward per episode")
+            plt.legend(loc='upper right')
+        else:
+            plt.plot(values)
         out_file = "plots/" + y_label + "_plot.png"
         plt.savefig(out_file) 
         plt.close()
 
-    def display(self, r_per_episode, cum_R, cum_loss, max_episodes):
-        self.plot_charts(r_per_episode, "Reward")
+    def display(self, r_per_episode, cum_R, cum_loss, max_episodes, epsilon):
+        self.plot_charts(r_per_episode, "Reward", epsilon)
         self.plot_charts(cum_R, "cumulative_reward")
         self.plot_charts(cum_loss, "cumulative_loss")
 
