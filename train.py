@@ -72,7 +72,7 @@ def run_episodes(env, agent, max_episodes, plot):
 def main():
     env = gym.make('CartPole-v0') # openai gym environment
 
-    max_episodes = 10
+    max_episodes = 2000
     epoch = 1000
 
     num_actions = env.action_space.n # number of possible actions
@@ -83,7 +83,7 @@ def main():
 
     epsilon = .9
     gamma = .9
-    learning_rate = .3
+    learning_rate = 1e-3
 
     replace = 'soft' # params replacement type, 'soft' for soft replacement or empty string '' for hard replacement
     polyak = .001 
