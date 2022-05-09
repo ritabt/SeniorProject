@@ -164,23 +164,29 @@ class duel_DDQN_agent():
     # Neural Net with 2 conv layer on top
     def built_conv_net(self, var_scope, w_init, b_init, features, num_hidden, num_output):       
         with tf.variable_scope(var_scope): 
+            # First conv
             conv1 = tf.contrib.layers.conv2d(features, 64, 
                                              (5,5), padding="same",
                                              strides=2)
             bn1 = tf.contrib.layers.batch_norm(conv1, activation=tf.nn.relu)
+            # Second conv
             conv2 = tf.contrib.layers.conv2d(bn1, 64, 
                                              (5,5), padding="same", 
                                              strides=2)
             bn2 = tf.contrib.layers.batch_norm(conv2, activation=tf.nn.relu)
+            # Third conv
             conv3 = tf.contrib.layers.conv2d(bn2, 32, 
                                              (5,5), padding="same", 
                                              strides=2)
             bn3 = tf.contrib.layers.batch_norm(conv3, activation=tf.nn.relu)
+            # Flatten
             flatten = tf.contrib.layers.flatten(bn3)
+            # Fully connected layer 
             feature_layer = tf.contrib.layers.fully_connected(flatten, num_hidden, 
                                                             activation_fn = tf.nn.relu,
                                                             weights_initializer = w_init,
                                                             biases_initializer = b_init)
+            # Get V and A
             V = tf.contrib.layers.fully_connected(features, 1, 
                                                 activation_fn = None,
                                                 weights_initializer = w_init,
