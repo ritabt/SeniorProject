@@ -5,6 +5,8 @@ from matplotlib import pyplot as plt
 from Duel_DDQN import Exp, duel_DDQN_agent, Plot
 from time import sleep
 import pdb
+import time
+import datetime
 
 def get_img(env):
     img = env.render(mode="rgb_array")    
@@ -101,7 +103,12 @@ def main():
                         mem_size, minibatch_size, is_conv=is_conv, img_size=img_size)
     plot = Plot()
 
+    time_1 = time.time()
     run_episodes(env, agent, max_episodes, plot)
+    time_2 = time.time()
+    time_interval = time_2 - time_1
+    time_taken = str(datetime.timedelta(seconds=time_interval))
+    print("Time taken: ", time_taken)
 
 if __name__=="__main__":
     main()
