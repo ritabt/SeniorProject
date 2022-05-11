@@ -7,20 +7,23 @@ from time import sleep
 import pdb
 import time
 import datetime
+from skimage import color
+
 
 def get_img(env):
-    img = env.render(mode="rgb_array")    
-    img_crop = img[125:310, 200:400]
-    return np.array([img_crop]).astype(np.float32)
+    img = env.render(mode="rgb_array")
+    img = img[125:310, 200:400]
+    # img = color.rgb2gray(img)
+    return np.array([img]).astype(np.float32)
+
 
 # TODO: move this to Agent class
 def get_image_state(model, env):
     img = get_img(env)
     s = model.predict(img)
     s = np.reshape(s, (s.shape[1],))
-    # pdb.set_trace()
-    # s = s.eval(session=tf.compat.v1.Session())
     return s
+
 
 def run_episodes(env, agent, max_episodes, plot):
     r_per_episode = np.array([0])
@@ -33,11 +36,13 @@ def run_episodes(env, agent, max_episodes, plot):
 
     # repeat each episode
     for episode_number in range(max_episodes):
-        s = env.reset() # reset new episode
-        done = False 
-        R = 0 
+        s = env.reset()  # reset new episode
+        done = False
+        R = 0
         # pdb.set_trace()
         if agent.is_conv:
+            s = get_img(env)
+        else:
             s = get_image_state(pretrained_model, env)
         # pdb.set_trace()
         # env.render()
@@ -50,19 +55,39 @@ def run_episodes(env, agent, max_episodes, plot):
             # take action in environment
             next_s, r, done, _ = env.step(a)
             if agent.is_conv:
+                next_s = get_img(env)
+            else:
                 next_s = get_image_state(pretrained_model, env)
-            
+
             # agent learns
             agent.learn(s, a, r, done)
             s = next_s
 
-            R += r 
+            R += r
 
-        (r_per_episode, cum_R_episodes, cum_R, cum_loss_episodes, cum_loss) = plot.stats(r_per_episode, R, cum_R, cum_R_episodes, 
-                                                                                agent.cum_loss_per_episode, cum_loss, cum_loss_episodes)
-        print('episode: ', episode_number, ' epsilon: %.3f'%agent.epsilon, ' reward: %.2f'%R)
+        (
+            r_per_episode,
+            cum_R_episodes,
+            cum_R,
+            cum_loss_episodes,
+            cum_loss,
+        ) = plot.stats(
+            r_per_episode,
+            R,
+            cum_R,
+            cum_R_episodes,
+            agent.cum_loss_per_episode,
+            cum_loss,
+            cum_loss_episodes,
+        )
+        print(
+            "episode: ",
+            episode_number,
+            " epsilon: %.3f" % agent.epsilon,
+            " reward: %.2f" % R,
+        )
         epsilon.append(agent.epsilon)
-    
+
     epsilon = np.array(epsilon)
     plot.display(r_per_episode, cum_R, cum_loss, max_episodes, epsilon)
 
@@ -70,37 +95,54 @@ def run_episodes(env, agent, max_episodes, plot):
 
 
 def main():
-    env = gym.make('CartPole-v0') # openai gym environment
+    env = gym.make("CartPole-v0")  # openai gym environment
 
     max_episodes = 2000
     epoch = 1000
 
-    num_actions = env.action_space.n # number of possible actions
-    obs_size = env.observation_space.shape[0] # dimension of state space
+    num_actions = env.action_space.n  # number of possible actions
+    obs_size = env.observation_space.shape[0]  # dimension of state space
     # pdb.set_trace()
     # obs_size = (185, 200) # img size
-    nhidden = 128 # number of hidden nodes
+    nhidden = 128  # number of hidden nodes
 
-    epsilon = .9
-    gamma = .9
+    epsilon = 0.9
+    gamma = 0.9
     learning_rate = 1e-3
 
-    replace = 'soft' # params replacement type, 'soft' for soft replacement or empty string '' for hard replacement
-    polyak = .001 
-    tau_step = 300 
+    replace = "soft"  # params replacement type, 'soft' for soft replacement or empty string '' for hard replacement
+    polyak = 0.001
+    tau_step = 300
 
     mem_size = 30000
     minibatch_size = 64
-    is_conv = True
-    img_size = (185, 200, 3)
+    is_conv = False
     if is_conv:
-        obs_size = 2048 # size of pretrained model output
+        img_size = (185, 200, 3)
+    else:
+        img_size = None
+    # if is_conv:
+    #     obs_size = 185
+    #     obs_size_w = 200
+    # else:
+    obs_size = 2048  # size of pretrained model output
 
-    agent = duel_DDQN_agent(num_actions, obs_size, nhidden,
-                        epoch, 
-                        epsilon, gamma, learning_rate, 
-                        replace, polyak, tau_step,
-                        mem_size, minibatch_size, is_conv=is_conv, img_size=img_size)
+    agent = duel_DDQN_agent(
+        num_actions,
+        obs_size,
+        nhidden,
+        epoch,
+        epsilon,
+        gamma,
+        learning_rate,
+        replace,
+        polyak,
+        tau_step,
+        mem_size,
+        minibatch_size,
+        is_conv=is_conv,
+        img_size=img_size,
+    )
     plot = Plot()
 
     time_1 = time.time()
@@ -110,5 +152,6 @@ def main():
     time_taken = str(datetime.timedelta(seconds=time_interval))
     print("Time taken: ", time_taken)
 
-if __name__=="__main__":
+
+if __name__ == "__main__":
     main()
