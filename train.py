@@ -97,8 +97,8 @@ def run_episodes(env, agent, max_episodes, plot):
 def main():
     env = gym.make("CartPole-v0")  # openai gym environment
 
-    max_episodes = 2
-    epoch = 100
+    max_episodes = 800
+    epoch = 200
 
     num_actions = env.action_space.n  # number of possible actions
     obs_size = env.observation_space.shape[0]  # dimension of state space
@@ -118,10 +118,7 @@ def main():
         img_size = (185, 200, 3)
     else:
         img_size = None
-    # if is_conv:
-    #     obs_size = 185
-    #     obs_size_w = 200
-    # else:
+        
     obs_size = 2048  # size of pretrained model output
 
     lrs = [1e-2, 1e-3, 1e-4, 1e-5, 1e-6]
@@ -151,6 +148,9 @@ def main():
         time_interval = time_2 - time_1
         time_taken = str(datetime.timedelta(seconds=time_interval))
         print("Time taken: ", time_taken)
+
+        # model_Q_val_path = "models/model_" + str(learning_rate) + ".ckpt"
+        # target_Q_val_path = "models/target_" + str(learning_rate) + ".ckpt"
     env.close()
 
 
