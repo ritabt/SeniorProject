@@ -5,7 +5,17 @@ class Plot():
     def __init__(self):
         return
 
-  # compute stats
+    def smooth(selft, scalars: List[float], weight: float) -> List[float]:  # Weight between 0 and 1
+        last = scalars[0]  # First value in the plot (first timestep)
+        smoothed = list()
+        for point in scalars:
+            smoothed_val = last * weight + (1 - weight) * point  # Calculate smoothed value
+            smoothed.append(smoothed_val)                        # Save it
+            last = smoothed_val                                  # Anchor the last smoothed value
+            
+        return smoothed
+
+    # compute stats
     def stats(self, r_per_episode, R, cum_R, cum_R_episodes, 
             cum_loss_per_episode, cum_loss, cum_loss_episodes):
         r_per_episode = np.append(r_per_episode, R) # store reward per episode
@@ -33,6 +43,9 @@ class Plot():
             np.save(np_out_file, values)
             plt.plot(epsilon, 'g', label="epsilon percentage")
             plt.plot(values, 'b', label="reward per episode")
+            values = self.smooth(values, 0.9)
+            plt.plot(values, 'r', label="smoothed reward per episode")
+            # ax.plot(x_labels, smooth(train_data, .9), x_labels, train_data)
             plt.legend(loc='upper right')
         else:
             plt.plot(values)
