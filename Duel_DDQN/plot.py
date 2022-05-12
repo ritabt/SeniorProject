@@ -23,8 +23,14 @@ class Plot():
         plt.title("DQN performance")
         plt.xlabel("Episode")
         plt.ylabel(y_label)
+
+        np_out_file = "values/" + y_label + "_plot.png"
+        np.save(np_out_file, values)
+
         if epsilon is not None:
             epsilon = epsilon*100
+            np_out_file = "values/" + y_label + "_epsilon.png"
+            np.save(np_out_file, values)
             plt.plot(epsilon, 'g', label="epsilon percentage")
             plt.plot(values, 'b', label="reward per episode")
             plt.legend(loc='upper right')
@@ -34,10 +40,10 @@ class Plot():
         plt.savefig(out_file) 
         plt.close()
 
-    def display(self, r_per_episode, cum_R, cum_loss, max_episodes, epsilon):
-        self.plot_charts(r_per_episode, "Reward", epsilon)
-        self.plot_charts(cum_R, "cumulative_reward")
-        self.plot_charts(cum_loss, "cumulative_loss")
+    def display(self, r_per_episode, cum_R, cum_loss, max_episodes, epsilon, lr):
+        self.plot_charts(r_per_episode, "Reward_lr_"+str(lr), epsilon)
+        self.plot_charts(cum_R, "cumulative_reward_lr_"+str(lr))
+        self.plot_charts(cum_loss, "cumulative_loss_lr_"+str(lr))
 
         avg_r = np.sum(r_per_episode) / max_episodes
         print("avg_r", avg_r)  

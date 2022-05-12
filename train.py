@@ -89,34 +89,31 @@ def run_episodes(env, agent, max_episodes, plot):
         epsilon.append(agent.epsilon)
 
     epsilon = np.array(epsilon)
-    plot.display(r_per_episode, cum_R, cum_loss, max_episodes, epsilon)
+    plot.display(r_per_episode, cum_R, cum_loss, max_episodes, epsilon, agent.learning_rate)
 
-    env.close()
+    
 
 
 def main():
     env = gym.make("CartPole-v0")  # openai gym environment
 
-    max_episodes = 2000
-    epoch = 1000
+    max_episodes = 2
+    epoch = 100
 
     num_actions = env.action_space.n  # number of possible actions
     obs_size = env.observation_space.shape[0]  # dimension of state space
-    # pdb.set_trace()
-    # obs_size = (185, 200) # img size
     nhidden = 128  # number of hidden nodes
 
     epsilon = 0.9
     gamma = 0.9
-    learning_rate = 1e-3
 
     replace = "soft"  # params replacement type, 'soft' for soft replacement or empty string '' for hard replacement
     polyak = 0.001
     tau_step = 300
 
-    mem_size = 30000
+    mem_size = 10000
     minibatch_size = 64
-    is_conv = False
+    is_conv = True
     if is_conv:
         img_size = (185, 200, 3)
     else:
@@ -127,30 +124,34 @@ def main():
     # else:
     obs_size = 2048  # size of pretrained model output
 
-    agent = duel_DDQN_agent(
-        num_actions,
-        obs_size,
-        nhidden,
-        epoch,
-        epsilon,
-        gamma,
-        learning_rate,
-        replace,
-        polyak,
-        tau_step,
-        mem_size,
-        minibatch_size,
-        is_conv=is_conv,
-        img_size=img_size,
-    )
-    plot = Plot()
+    lrs = [1e-2, 1e-3, 1e-4, 1e-5, 1e-6]
 
-    time_1 = time.time()
-    run_episodes(env, agent, max_episodes, plot)
-    time_2 = time.time()
-    time_interval = time_2 - time_1
-    time_taken = str(datetime.timedelta(seconds=time_interval))
-    print("Time taken: ", time_taken)
+    for learning_rate in lrs:
+        agent = duel_DDQN_agent(
+            num_actions,
+            obs_size,
+            nhidden,
+            epoch,
+            epsilon,
+            gamma,
+            learning_rate,
+            replace,
+            polyak,
+            tau_step,
+            mem_size,
+            minibatch_size,
+            is_conv=is_conv,
+            img_size=img_size,
+        )
+        plot = Plot()
+
+        time_1 = time.time()
+        run_episodes(env, agent, max_episodes, plot)
+        time_2 = time.time()
+        time_interval = time_2 - time_1
+        time_taken = str(datetime.timedelta(seconds=time_interval))
+        print("Time taken: ", time_taken)
+    env.close()
 
 
 if __name__ == "__main__":
