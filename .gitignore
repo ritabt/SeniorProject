@@ -2,3 +2,4 @@
 /Duel_DDQN/__pycache__/*
 /plots/*
 /values/*
+/checkpoints/*
