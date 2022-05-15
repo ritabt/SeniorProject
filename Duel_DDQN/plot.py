@@ -5,7 +5,7 @@ class Plot():
     def __init__(self):
         return
 
-    def smooth(selft, scalars: List[float], weight: float) -> List[float]:  # Weight between 0 and 1
+    def smooth(selft, scalars, weight):  # Weight between 0 and 1
         last = scalars[0]  # First value in the plot (first timestep)
         smoothed = list()
         for point in scalars:
@@ -43,7 +43,7 @@ class Plot():
             np.save(np_out_file, values)
             plt.plot(epsilon, 'g', label="epsilon percentage")
             plt.plot(values, 'b', label="reward per episode")
-            values = self.smooth(values, 0.9)
+            values = self.smooth(values, 0.99)
             plt.plot(values, 'r', label="smoothed reward per episode")
             # ax.plot(x_labels, smooth(train_data, .9), x_labels, train_data)
             plt.legend(loc='upper right')

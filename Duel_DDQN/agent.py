@@ -2,6 +2,7 @@ import tensorflow as tf
 import numpy as np
 from .experience_replay import Exp
 import tensorflow.compat.v2 as tf2
+import os
 
 
 # Evaluates behavior policy while improving target policy
@@ -38,6 +39,7 @@ class duel_DDQN_agent:
         minibatch_size,
         is_conv=False,
         img_size=None,
+        test=False
     ):
 
         super(duel_DDQN_agent, self).__init__()
@@ -48,6 +50,7 @@ class duel_DDQN_agent:
         self.nhidden = nhidden  # hidden nodes
         self.img_size = img_size  # (185, 200, 3)
         self.is_conv = is_conv
+        self.test=test
 
         # for epsilon decay & to decide when to start training
         # used in epsilon decay function for modulo to know when to decay
@@ -76,6 +79,8 @@ class duel_DDQN_agent:
         self.sess.run(tf.global_variables_initializer())
         self.sess.run(self.target_replace_hard)
 
+        self.saver = tf.train.Saver()
+
         self.cum_loss_per_episode = 0  # incremented loss for charting display
 
     # decay epsilon after each epoch
@@ -83,6 +88,18 @@ class duel_DDQN_agent:
         if self.step % self.epoch == 0:
             # TODO: make decay rate a var in __init__
             self.epsilon = max(0.01, self.epsilon * 0.95)
+
+    def save_checkpoint(self):
+        checkpoint_dir = 'checkpoints/'+str(self.learning_rate)+'/'
+        isExist = os.path.exists(checkpoint_dir)
+        if not isExist:
+            os.makedirs(checkpoint_dir)
+        self.saver.save(self.sess, checkpoint_dir+'model')
+
+    def load_checkpoint(self):
+        checkpoint_dir = 'checkpoints/'+str(self.learning_rate)+'/'
+        self.saver = tf.train.import_meta_graph(checkpoint_dir+'model.meta')
+        self.saver.restore(self.sess, tf.train.latest_checkpoint(checkpoint_dir))
 
     # epsilon-greedy behaviour policy for action selection
     def act(self, s):
@@ -162,22 +179,22 @@ class duel_DDQN_agent:
                 features,
                 num_hidden,
                 activation_fn=tf.nn.relu,
-                weights_initializer=w_init,
-                biases_initializer=b_init,
+                # weights_initializer=w_init,
+                # biases_initializer=b_init,
             )
             V = tf.contrib.layers.fully_connected(
                 feature_layer,
                 1,
                 activation_fn=None,
-                weights_initializer=w_init,
-                biases_initializer=b_init,
+                # weights_initializer=w_init,
+                # biases_initializer=b_init,
             )
             A = tf.contrib.layers.fully_connected(
                 feature_layer,
                 num_output,
                 activation_fn=None,
-                weights_initializer=w_init,
-                biases_initializer=b_init,
+                # weights_initializer=w_init,
+                # biases_initializer=b_init,
             )
             Q_val = V + (
                 A - tf.reduce_mean(A, reduction_indices=1, keepdims=True)
@@ -359,6 +376,15 @@ class duel_DDQN_agent:
             self.target_Q_val = self.built_net(
                 "target_net", w_init, b_init, self.s_next, self.nhidden, self.num_actions
             )
+
+        if self.test:
+            self.model_Q_val = self.built_net_features(
+                "model_net", w_init, b_init, self.s, self.nhidden, self.num_actions
+            )
+            self.target_Q_val = self.built_net_features(
+                "target_net", w_init, b_init, self.s_next, self.nhidden, self.num_actions
+            )
+
 
         with tf.variable_scope("td_target"):
             td_target = self.td_target(
