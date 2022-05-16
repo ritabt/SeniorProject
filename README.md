@@ -28,6 +28,11 @@ pip install pygame
 pip install h5py==2.10.0 --force-reinstall
 pip install scikit-image
 ```
+Run the following commands to setup airsim
+```
+pip install msgpack-rpc-python
+pip install airsim
+```
 
 ## To-Do:
 - Modify environment actions to get 2-4 consecutive frames as a state
