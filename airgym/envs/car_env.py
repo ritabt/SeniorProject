@@ -7,6 +7,7 @@ import time
 import gym
 from gym import spaces
 from airgym.envs.airsim_env import AirSimEnv
+import pdb
 
 
 class AirSimCarEnv(AirSimEnv):
@@ -41,15 +42,15 @@ class AirSimCarEnv(AirSimEnv):
         # Down the big road
         for i in range(19):
             self.pts.append(np.array([5*i, 0, 0]))
-        # First Turn
-        for i in range(10):
-            self.pts.append(np.array([97.3, 5*i, 0]))
-        # Second Turn
-        for i in range(12):
-            self.pts.append(np.array([97.3-5*i, 53.5, 0]))
-        # Third Turn
-        for i in range(10):
-            self.pts.append(np.array([35.6, 53.5-5*i, 0]))
+        # # First Turn
+        # for i in range(10):
+        #     self.pts.append(np.array([97.3, 5*i, 0]))
+        # # Second Turn
+        # for i in range(12):
+        #     self.pts.append(np.array([97.3-5*i, 53.5, 0]))
+        # # Third Turn
+        # for i in range(10):
+        #     self.pts.append(np.array([35.6, 53.5-5*i, 0]))
 
     def _setup_car(self):
         self.car.reset()
@@ -89,14 +90,17 @@ class AirSimCarEnv(AirSimEnv):
         img1d = np.fromstring(response.image_data_uint8, dtype=np.uint8)
         img_rgb = img1d.reshape(response.height, response.width, 3)
         img_rgb = np.flipud(img_rgb)
+        return img_rgb
 
-        from PIL import Image
+        # pdb.set_trace()
 
-        image = Image.fromarray(img_rgb)
-        image = image.resize((84, 84))
-        im_final = np.array(image.convert("L"))
+        # from PIL import Image
 
-        return im_final.reshape([84, 84, 1])
+        # image = Image.fromarray(img_rgb)
+        # image = image.resize((84, 84))
+        # im_final = np.array(image.convert("L"))
+
+        # return im_final.reshape([84, 84, 1])
 
     def _get_obs(self):
         responses = self.car.simGetImages([self.image_request])
