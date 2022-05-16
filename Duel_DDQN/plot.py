@@ -1,5 +1,6 @@
 import numpy as np
 from matplotlib import pyplot as plt
+import pdb
 
 class Plot():
     def __init__(self):
@@ -28,23 +29,26 @@ class Plot():
         return (r_per_episode, cum_R_episodes, cum_R, cum_loss_episodes, cum_loss)
 
     # plot performance
-    def plot_charts(self, values, y_label, epsilon=None):
+    def plot_charts(self, values, y_label, epsilon=None, save_vals=True):
         fig = plt.figure(figsize=(10,5))
         plt.title("DQN performance")
         plt.xlabel("Episode")
         plt.ylabel(y_label)
 
-        np_out_file = "values/" + y_label + "_plot.png"
-        np.save(np_out_file, values)
+        if save_vals:
+            np_out_file = "values/" + y_label + "_plot.png"
+            np.save(np_out_file, values)
 
         if epsilon is not None:
             epsilon = epsilon*100
-            np_out_file = "values/" + y_label + "_epsilon.png"
-            np.save(np_out_file, values)
+            if save_vals:
+                np_out_file = "values/" + y_label + "_epsilon.png"
+                np.save(np_out_file, values)
             plt.plot(epsilon, 'g', label="epsilon percentage")
             plt.plot(values, 'b', label="reward per episode")
             values = self.smooth(values, 0.99)
             plt.plot(values, 'r', label="smoothed reward per episode")
+            # pdb.set_trace()
             # ax.plot(x_labels, smooth(train_data, .9), x_labels, train_data)
             plt.legend(loc='upper right')
         else:

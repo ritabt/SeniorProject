@@ -233,13 +233,13 @@ class duel_DDQN_agent:
             conv1 = tf.contrib.layers.conv2d(
                 features, 64, (5, 5), padding="same", stride=2
             )
-            bn1 = tf.contrib.layers.batch_norm(conv1, activation=tf.nn.relu)
+            bn1 = tf.contrib.layers.batch_norm(conv1, activation_fn=tf.nn.relu)
             # Second conv
             conv2 = tf.contrib.layers.conv2d(bn1, 64, (5, 5), padding="same", stride=2)
-            bn2 = tf.contrib.layers.batch_norm(conv2, activation=tf.nn.relu)
+            bn2 = tf.contrib.layers.batch_norm(conv2, activation_fn=tf.nn.relu)
             # Third conv
             conv3 = tf.contrib.layers.conv2d(bn2, 32, (5, 5), padding="same", stride=2)
-            bn3 = tf.contrib.layers.batch_norm(conv3, activation=tf.nn.relu)
+            bn3 = tf.contrib.layers.batch_norm(conv3, activation_fn=tf.nn.relu)
             # Flatten
             flatten = tf.contrib.layers.flatten(bn3)
             # Fully connected layer
@@ -252,14 +252,14 @@ class duel_DDQN_agent:
             )
             # Get V and A
             V = tf.contrib.layers.fully_connected(
-                features,
+                feature_layer,
                 1,
                 activation_fn=None,
                 weights_initializer=w_init,
                 biases_initializer=b_init,
             )
             A = tf.contrib.layers.fully_connected(
-                features,
+                feature_layer,
                 num_output,
                 activation_fn=None,
                 weights_initializer=w_init,
@@ -363,10 +363,10 @@ class duel_DDQN_agent:
         # If is_conv we train a conv model from scratch
         # Else we have a non image representation of the state: ResNet preprocessing
         if self.is_conv:
-            self.model_Q_val = self.built_basic_conv_net(
+            self.model_Q_val = self.built_conv_net(
                 "model_net", w_init, b_init, self.s, self.nhidden, self.num_actions
             )
-            self.target_Q_val = self.built_basic_conv_net(
+            self.target_Q_val = self.built_conv_net(
                 "target_net", w_init, b_init, self.s_next, self.nhidden, self.num_actions
             )
         else:
