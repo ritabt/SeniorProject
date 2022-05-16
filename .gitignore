@@ -4,3 +4,6 @@
 /values/*
 /checkpoints/*
 /car_pics/*
+__pycache__/*
+airgym/__pycache__/*
+airgym/envs/__pycache__/*
