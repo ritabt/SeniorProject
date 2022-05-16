@@ -7,3 +7,4 @@
 __pycache__/*
 airgym/__pycache__/*
 airgym/envs/__pycache__/*
+tb_logs/*
