@@ -32,6 +32,7 @@ Run the following commands to setup airsim
 ```
 pip install msgpack-rpc-python
 pip install airsim
+pip install stable-baselines3
 ```
 
 ## To-Do:
