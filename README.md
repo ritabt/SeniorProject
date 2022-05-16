@@ -38,7 +38,6 @@ pip install airsim
 - Modify environment actions to get 2-4 consecutive frames as a state
 - Set up custom gym environment for the car in AirSim with similar specs
 - Design reward function for the car agent that uses the simulation env to determine if the car is in the lane
-- Setup this repo with the Airsim files used
 - Compare performance of different Dueling Double DQN approach with cartpole: using gym's state representation - using ResNet50 as a preprocessing step - training conv2d layers within the DQN.
 - Implement Prioritized Experience Replay
 
