@@ -13,6 +13,7 @@ client.enableApiControl(True)
 print("API Control enabled: %s" % client.isApiControlEnabled())
 car_controls = airsim.CarControls()
 
+# tmp_dir = os.path.join(tempfile.gettempdir(), "airsim_car")
 tmp_dir = "./car_pics"
 print ("Saving images to %s" % tmp_dir)
 try:
@@ -78,3 +79,4 @@ for idx in range(3):
 client.reset()
 
 client.enableApiControl(False)
+
