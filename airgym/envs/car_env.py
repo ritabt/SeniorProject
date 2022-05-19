@@ -53,6 +53,8 @@ class AirSimCarEnv(AirSimEnv):
         # for i in range(10):
         #     self.pts.append(np.array([35.6, 53.5-5*i, 0]))
 
+        self.pts = np.array(self.pts)
+
     def _setup_car(self):
         self.car.reset()
         self.car.enableApiControl(True)
@@ -128,11 +130,16 @@ class AirSimCarEnv(AirSimEnv):
         car_pt = self.state["pose"].position.to_numpy_array()
 
         i =min(self.curr_ts**2//2, 99)
-        dist = np.linalg.norm(pts[i]-car_pt)
-        print(i, dist)
-        reward = 10/(dist+1)
+        # dist = np.linalg.norm(pts[i]-car_pt)
+        distances = np.linalg.norm(pts - car_pt, axis=1)
+        min_dist = min(distances)
+        print(i, self.curr_ts, distances[i], min_dist)
+        reward = 20/(distances[i]+1)
+        reward += 10/(min_dist+1)
 
-        if dist>10:
+        # pdb.set_trace()
+
+        if min_dist>5:
             done = 1
 
         # if self.car_controls.brake == 0:
@@ -141,7 +148,10 @@ class AirSimCarEnv(AirSimEnv):
         #     reward = -5
         if self.state["collision"]:
             done = 1
-            reward = -50
+            reward = -100
+        elif self.curr_ts>=30:
+            done = 1
+            reward += 100
 
         return reward, done
 

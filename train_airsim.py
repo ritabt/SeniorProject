@@ -114,9 +114,9 @@ def main():
 
 	test = False
 
-	max_episodes = 500
-	load = True
-	epoch = 100
+	max_episodes = 1000
+	load = False
+	epoch = 200
 	is_conv = False
 
 	num_actions = env.action_space.n  # number of possible actions
@@ -150,7 +150,7 @@ def main():
 		obs_size = env.observation_space.shape[0]
 
 	lrs = [1e-2, 1e-3, 1e-4, 1e-5, 1e-6]
-	lrs = [1e-5]
+	# lrs = [1e-5]
 	if test:
 		lrs = [.3]
 
