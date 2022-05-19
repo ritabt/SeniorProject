@@ -115,7 +115,7 @@ def main():
 	test = False
 
 	max_episodes = 500
-	load = False
+	load = True
 	epoch = 100
 	is_conv = False
 
@@ -127,6 +127,7 @@ def main():
 	if load:
 		# No exploration
 		epsilon = 0.01
+		epsilon = 0.9
 	gamma = 0.9
 
 	replace = "soft"  # params replacement type, 'soft' for soft replacement or empty string '' for hard replacement

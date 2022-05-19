@@ -16,6 +16,7 @@ class AirSimCarEnv(AirSimEnv):
 
         self.image_shape = image_shape
         self.start_ts = 0
+        self.curr_ts = 0
 
         self.state = {
             "position": np.zeros(3),
@@ -40,8 +41,8 @@ class AirSimCarEnv(AirSimEnv):
 
         self.pts = []
         # Down the big road
-        for i in range(19):
-            self.pts.append(np.array([5*i, 0, 0]))
+        for i in range(100):
+            self.pts.append(np.array([2*i, 0, 0]))
         # # First Turn
         # for i in range(10):
         #     self.pts.append(np.array([97.3, 5*i, 0]))
@@ -57,6 +58,7 @@ class AirSimCarEnv(AirSimEnv):
         self.car.enableApiControl(True)
         self.car.armDisarm(True)
         time.sleep(0.01)
+        self.curr_ts = 0
 
     def __del__(self):
         self.car.reset()
@@ -80,6 +82,7 @@ class AirSimCarEnv(AirSimEnv):
             self.car_controls.steering = -0.25
 
         self.car.setCarControls(self.car_controls)
+        self.curr_ts += 1
         time.sleep(1)
 
     def transform_obs(self, response):
@@ -119,40 +122,26 @@ class AirSimCarEnv(AirSimEnv):
         MIN_SPEED = 3
         THRESH_DIST = 4.5
         BETA = 3
+        done = 0
 
         pts = self.pts
         car_pt = self.state["pose"].position.to_numpy_array()
 
-        dist = 10000000
-        for i in range(0, len(pts) - 1):
-            dist = min(
-                dist,
-                np.linalg.norm(
-                    np.cross((car_pt - pts[i]), (car_pt - pts[i + 1]))
-                )
-                / np.linalg.norm(pts[i] - pts[i + 1]),
-            )
+        i =min(self.curr_ts**2//2, 99)
+        dist = np.linalg.norm(pts[i]-car_pt)
+        print(i, dist)
+        reward = 10/(dist+1)
 
-        # print(dist)
-        if dist > THRESH_DIST:
-            reward = -3
-        else:
-            reward_dist = math.exp(-BETA * dist) - 0.5
-            reward_speed = (
-                (self.car_state.speed - MIN_SPEED) / (MAX_SPEED - MIN_SPEED)
-            ) - 0.5
-            reward = reward_dist + reward_speed
-
-        done = 0
-        if reward < -1:
+        if dist>10:
             done = 1
-        if self.car_controls.brake == 0:
-            if self.car_state.speed <= 1:
-                done = 1
-            reward = -5
+
+        # if self.car_controls.brake == 0:
+        #     if self.car_state.speed <= 1:
+        #         done = 1
+        #     reward = -5
         if self.state["collision"]:
             done = 1
-            reward = -10
+            reward = -50
 
         return reward, done
 
@@ -166,4 +155,5 @@ class AirSimCarEnv(AirSimEnv):
     def reset(self):
         self._setup_car()
         self._do_action(1)
+
         return self._get_obs()

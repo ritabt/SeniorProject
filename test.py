@@ -9,7 +9,7 @@ import tempfile
 # connect to the AirSim simulator
 client = airsim.CarClient()
 client.confirmConnection()
-client.enableApiControl(True)
+client.enableApiControl(False)
 print("API Control enabled: %s" % client.isApiControlEnabled())
 car_controls = airsim.CarControls()
 
@@ -22,9 +22,22 @@ except OSError:
     if not os.path.isdir(tmp_dir):
         raise
 
+car_state = client.getCarState()
+pos = car_state.kinematics_estimated.position.to_numpy_array()
+print("Initial Position = ", pos)
+
+t = 0
+while True:
+    car_state = client.getCarState()
+    pos = car_state.kinematics_estimated.position.to_numpy_array()
+    print("t = ", t, "  Position = ", pos)
+    time.sleep(1)
+    t += 1
+
 for idx in range(3):
     # get state of the car
     car_state = client.getCarState()
+    pos = car_state.kinematics_estimated
     print("Speed %d, Gear %d" % (car_state.speed, car_state.gear))
 
     # go forward
