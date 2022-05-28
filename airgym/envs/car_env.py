@@ -17,6 +17,7 @@ class AirSimCarEnv(AirSimEnv):
         self.image_shape = image_shape
         self.start_ts = 0
         self.curr_ts = 0
+        self.stopped_t = 0
 
         self.state = {
             "position": np.zeros(3),
@@ -61,6 +62,7 @@ class AirSimCarEnv(AirSimEnv):
         self.car.armDisarm(True)
         time.sleep(0.01)
         self.curr_ts = 0
+        self.stopped_t = 0
 
     def __del__(self):
         self.car.reset()
@@ -129,29 +131,41 @@ class AirSimCarEnv(AirSimEnv):
         pts = self.pts
         car_pt = self.state["pose"].position.to_numpy_array()
 
-        i =min(self.curr_ts**2//2, 99)
+        # i =min(self.curr_ts**2//2, 99)
         # dist = np.linalg.norm(pts[i]-car_pt)
         distances = np.linalg.norm(pts - car_pt, axis=1)
+        speed = self.car_state.speed
         min_dist = min(distances)
-        print(i, self.curr_ts, distances[i], min_dist)
-        reward = 20/(distances[i]+1)
-        reward += 10/(min_dist+1)
+        # print(min_dist, speed)
+        # reward = 20/(distances[i]+1) + 
+        reward = 10/(min_dist+1) + speed
 
         # pdb.set_trace()
 
         if min_dist>5:
+            done = 1
+            reward = -10
+
+        if speed <= 1:
+            self.stopped_t += 1
+        else:
+            self.stopped_t = 0
+
+        if self.stopped_t > 2:
+            reward = -10
             done = 1
 
         # if self.car_controls.brake == 0:
         #     if self.car_state.speed <= 1:
         #         done = 1
         #     reward = -5
+
         if self.state["collision"]:
             done = 1
             reward = -100
+
         elif self.curr_ts>=30:
             done = 1
-            reward += 100
 
         return reward, done
 

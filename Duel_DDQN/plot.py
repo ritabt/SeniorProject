@@ -43,7 +43,7 @@ class Plot():
             epsilon = epsilon*100
             if save_vals:
                 np_out_file = "values/" + y_label + "_epsilon.png"
-                np.save(np_out_file, values)
+                np.save(np_out_file, epsilon)
             plt.plot(epsilon, 'g', label="epsilon percentage")
             plt.plot(values, 'b', label="reward per episode")
             values = self.smooth(values, 0.99)
@@ -57,10 +57,11 @@ class Plot():
         plt.savefig(out_file) 
         plt.close()
 
-    def display(self, r_per_episode, cum_R, cum_loss, max_episodes, epsilon, lr):
-        self.plot_charts(r_per_episode, "Reward_lr_"+str(lr), epsilon)
-        self.plot_charts(cum_R, "cumulative_reward_lr_"+str(lr))
-        self.plot_charts(cum_loss, "cumulative_loss_lr_"+str(lr))
+    def display(self, r_per_episode, cum_R, cum_loss, max_episodes, epsilon, lr, network):
+        str_id = "_lr_" + str(lr) + "_" + str(network) 
+        self.plot_charts(r_per_episode, "Reward" + str_id, epsilon)
+        self.plot_charts(cum_R, "cumulative_reward"+str_id)
+        self.plot_charts(cum_loss, "cumulative_loss"+str_id)
 
         avg_r = np.sum(r_per_episode) / max_episodes
         print("avg_r", avg_r)  

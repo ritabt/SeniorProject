@@ -39,7 +39,8 @@ class duel_DDQN_agent:
         minibatch_size,
         is_conv=False,
         img_size=None,
-        test=False
+        test=False,
+        network_idx=None
     ):
 
         super(duel_DDQN_agent, self).__init__()
@@ -51,6 +52,14 @@ class duel_DDQN_agent:
         self.img_size = img_size  # (185, 200, 3)
         self.is_conv = is_conv
         self.test=test
+        self.networks = [
+                         self.built_net, 
+                         self.built_net_features, 
+                         self.built_conv_net, 
+                         self.built_basic_conv_net
+                         ]
+        self.network_idx = network_idx
+        self.network = self.networks[network_idx]
 
         # for epsilon decay & to decide when to start training
         # used in epsilon decay function for modulo to know when to decay
@@ -90,14 +99,14 @@ class duel_DDQN_agent:
             self.epsilon = max(0.01, self.epsilon * 0.95)
 
     def save_checkpoint(self):
-        checkpoint_dir = 'checkpoints/'+str(self.learning_rate)+'/'
+        checkpoint_dir = 'checkpoints/' + str(self.network_idx)+'/'+str(self.learning_rate)+'/'
         isExist = os.path.exists(checkpoint_dir)
         if not isExist:
             os.makedirs(checkpoint_dir)
         self.saver.save(self.sess, checkpoint_dir+'model')
 
     def load_checkpoint(self):
-        checkpoint_dir = 'checkpoints/'+str(self.learning_rate)+'/'
+        checkpoint_dir = 'checkpoints/' + str(self.network_idx) + '/' + str(self.learning_rate)+'/'
         self.saver = tf.train.import_meta_graph(checkpoint_dir+'model.meta')
         self.saver.restore(self.sess, tf.train.latest_checkpoint(checkpoint_dir))
 
@@ -360,30 +369,36 @@ class duel_DDQN_agent:
         b_init = tf.initializers.he_uniform(1e-4)
 
 
+        self.model_Q_val = self.network(
+            "model_net", w_init, b_init, self.s, self.nhidden, self.num_actions
+        )
+        self.target_Q_val = self.network(
+            "target_net", w_init, b_init, self.s_next, self.nhidden, self.num_actions
+        )
         # If is_conv we train a conv model from scratch
         # Else we have a non image representation of the state: ResNet preprocessing
-        if self.is_conv:
-            self.model_Q_val = self.built_conv_net(
-                "model_net", w_init, b_init, self.s, self.nhidden, self.num_actions
-            )
-            self.target_Q_val = self.built_conv_net(
-                "target_net", w_init, b_init, self.s_next, self.nhidden, self.num_actions
-            )
-        else:
-            self.model_Q_val = self.built_net(
-                "model_net", w_init, b_init, self.s, self.nhidden, self.num_actions
-            )
-            self.target_Q_val = self.built_net(
-                "target_net", w_init, b_init, self.s_next, self.nhidden, self.num_actions
-            )
+        # if self.is_conv:
+        #     self.model_Q_val = self.built_conv_net(
+        #         "model_net", w_init, b_init, self.s, self.nhidden, self.num_actions
+        #     )
+        #     self.target_Q_val = self.built_conv_net(
+        #         "target_net", w_init, b_init, self.s_next, self.nhidden, self.num_actions
+        #     )
+        # else:
+        #     self.model_Q_val = self.built_net(
+        #         "model_net", w_init, b_init, self.s, self.nhidden, self.num_actions
+        #     )
+        #     self.target_Q_val = self.built_net(
+        #         "target_net", w_init, b_init, self.s_next, self.nhidden, self.num_actions
+        #     )
 
-        if self.test:
-            self.model_Q_val = self.built_net_features(
-                "model_net", w_init, b_init, self.s, self.nhidden, self.num_actions
-            )
-            self.target_Q_val = self.built_net_features(
-                "target_net", w_init, b_init, self.s_next, self.nhidden, self.num_actions
-            )
+        # if self.test:
+        #     self.model_Q_val = self.built_net_features(
+        #         "model_net", w_init, b_init, self.s, self.nhidden, self.num_actions
+        #     )
+        #     self.target_Q_val = self.built_net_features(
+        #         "target_net", w_init, b_init, self.s_next, self.nhidden, self.num_actions
+        #     )
 
 
         with tf.variable_scope("td_target"):
