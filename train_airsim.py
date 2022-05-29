@@ -185,42 +185,43 @@ def main():
 			agent.save_checkpoint()
 
 	else:
-		for i, is_conv in zip(neural_networks, conv):
+		# for i, is_conv in zip(neural_networks, conv):
+		for i, is_conv, learning_rate in zip(neural_networks, conv, best_lrs):
 
 			if is_conv:
 				img_size = env.image_shape
 			else:
 				img_size = None
 
-			for learning_rate in lrs:
-				agent = duel_DDQN_agent(
-					num_actions,
-					obs_size,
-					nhidden,
-					epoch,
-					epsilon,
-					gamma,
-					learning_rate,
-					replace,
-					polyak,
-					tau_step,
-					mem_size,
-					minibatch_size,
-					is_conv=is_conv,
-					img_size=img_size,
-					test=test,
-					network_idx=i
-				)
+			# for learning_rate in lrs:
+			agent = duel_DDQN_agent(
+				num_actions,
+				obs_size,
+				nhidden,
+				epoch,
+				epsilon,
+				gamma,
+				learning_rate,
+				replace,
+				polyak,
+				tau_step,
+				mem_size,
+				minibatch_size,
+				is_conv=is_conv,
+				img_size=img_size,
+				test=test,
+				network_idx=i
+			)
 
-				plot = Plot()
+			plot = Plot()
 
-				time_1 = time.time()
-				run_episodes(env, agent, max_episodes, plot, load=load)
-				time_2 = time.time()
-				time_interval = time_2 - time_1
-				time_taken = str(datetime.timedelta(seconds=time_interval))
-				print("Time taken: ", time_taken)
-				agent.save_checkpoint()
+			time_1 = time.time()
+			run_episodes(env, agent, max_episodes, plot, load=load)
+			time_2 = time.time()
+			time_interval = time_2 - time_1
+			time_taken = str(datetime.timedelta(seconds=time_interval))
+			print("Time taken: ", time_taken)
+			agent.save_checkpoint()
 
 
 if __name__ == "__main__":
