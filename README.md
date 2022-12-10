@@ -3,6 +3,8 @@
 ## Project:
 Training a car in simulation using Deep Reinforcement Learning. I set up a simulation environment in Unreal4 by copying the assets from Carla to build the towns and using the Airsim plugin to have an easy to use API. I am using this repo to develop the dueling double DQN part of the project.
 
+For more info on the project, see the [final paper](https://github.com/ritabt/SeniorProject_DDDQN/tree/main/final_paper).
+
 ## This Repo:
 The Duel_DDQN folder is a package for training with Dueling Double DQN using a gym environment. I have modified the code from [here](https://github.com/ChuaCheowHuan/reinforcement_learning/blob/master/DQN_variants/duel_DDQN/duelling_DDQN_cartpole.ipynb) to make it into an easy to use package.
 
